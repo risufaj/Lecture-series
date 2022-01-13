@@ -124,3 +124,104 @@ def rwgs84_matrix(latd):
 
     return r
 
+
+
+class Traffic:
+    '''
+    Class definition
+    Methods to implement:
+        Traffic()    :    Constructor
+        add()     :   Add aircraft to airspace
+        delete()     :   Remove aircraft from airspace
+        detect_conflict()    :    Give a list of conflicting aircraft
+    
+    Attributes:
+        call_sign     :     ID of flight
+        origin     :    Origin airport
+        destination     :    destination airport
+        ac_types    :    Type of aircraft
+        flight_type    :    Manned or unmanned
+        trajectories    :    Trajectories of present aircraft in the airspace
+        safety_distances    :    Safety distances for this airspace
+    '''
+    
+    def __init__(self):
+        #pass
+        self.call_sign = []
+        self.origin = []
+        self.destination = []
+        self.trajectories = []
+        self.safety_distances = (5,1000)
+        
+    def add(self,call_sign, origin, dest, trajectory):
+        self.call_sign.append(call_sign)
+        
+        self.origin.append(origin)
+        self.destination.append(dest)
+        self.trajectories.append(trajectory)
+        
+        #pass
+    def delete(self,idx):
+        self.call_sign.pop(idx)
+        self.origin.pop(idx)
+        self.destination.pop(idx)
+        self.trajectories.pop(idx)
+        
+        #pass
+    def idx2id(self,idx):
+        return self.call_sign.index(idx)
+    
+    def detect_conflicts(self):
+        conflicts = conflict_detection(self.trajectories, self.safety_distances)
+        #print(conflicts)
+        
+        conf_pairs = []
+        for time, conf_list in conflicts.items():
+            for pair in conf_list:
+                if pair not in conf_pairs:
+                    conf_pairs.append(pair)
+        
+        result = []
+        for pair in conf_pairs:
+            start = 0
+            end = 0
+            for time, conf_list in conflicts.items():
+                if pair in conf_list:
+                    if start == 0:
+                        start = time
+                        end = time
+                    else:
+                        end = time
+            result.append((pair, start, end))
+        
+        return result
+    
+    
+class Trajectory:
+    '''
+    Class definition
+    Methods:
+        Trajectory()    :    Constructor
+        change_altitude()    :    Change the altitude of the trajectory
+        flown_distance()    :    Determine the distance flown in this trajectory
+    Attributes:
+        time
+        latitude
+        longitude
+        altitude
+    '''
+    
+    def __init__(self,time,lat,long,alt):
+        self.time = time
+        self.lat = lat
+        self.lon = long
+        self.alt = alt
+        
+    def change_altitude(self,new_altitude, start_time, end_time):
+        start = self.time.index(start_time)
+        end = self.time.index(end_time)
+        self.alt[start:end] = [new_altitude]*(end - start)
+        #pass
+    def flown_distance(self):
+        dist = distance(self.lat[0], self.lon[0], self.lat[-1], self.lon[-1])
+        return float(dist)
